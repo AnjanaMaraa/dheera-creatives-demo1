@@ -1,0 +1,16 @@
+{
+  "name": "Dheera Creatives",
+  "short_name": "Dheera",
+  "description": "Handcrafted Aari Embroidery & Custom Stitching",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#01200f",
+  "theme_color": "#01200f",
+  "icons": [
+    {
+      "src": "assets/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    }
+  ]
+}
