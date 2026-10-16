@@ -11,14 +11,26 @@
     <meta name="author" content="Dheera Creatives">
     <meta name="theme-color" content="#01200f">
 
-    <link rel="canonical" href="REPLACE_WITH_FINAL_CANONICAL_URL">
+    <!-- Absolute URLs in this <head> are built from config.js -> website.url
+         at runtime. Nothing here needs editing; the token __SITE_URL__ is
+         swapped for the configured origin by applySiteUrl() in script.js. -->
+    <link rel="canonical" href="__SITE_URL__/">
 
     <!-- Open Graph Meta Tags -->
     <meta property="og:type" content="website">
     <meta property="og:title" content="Dheera Creatives | Aari Embroidery & Custom Stitching">
     <meta property="og:description" content="Discover handcrafted Aari embroidery and personalized stitching for your special moments.">
-    <meta property="og:image" content="REPLACE_WITH_ABSOLUTE_HERO_IMAGE_URL">
-    <meta property="og:url" content="REPLACE_WITH_FINAL_CANONICAL_URL">
+    <!-- Social share image: 1200x630, the exact Open Graph ratio.
+         CAUTION: Facebook, WhatsApp, X, LinkedIn and Slack do NOT run JavaScript,
+         so they read the literal __SITE_URL__ token and will show no image.
+         Google does run JS, so search/JSON-LD is unaffected. If social previews
+         matter, hard-code the absolute https URL of og-image.jpg right here. -->
+    <meta property="og:image" content="__SITE_URL__/assets/logo/og-image.jpg">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Dheera Creatives — handcrafted Aari embroidery and custom stitching">
+    <meta property="og:url" content="__SITE_URL__/">
     <meta property="og:site_name" content="Dheera Creatives">
     <meta property="og:locale" content="en_IN">
 
@@ -26,11 +38,14 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Dheera Creatives | Aari Embroidery & Custom Stitching">
     <meta name="twitter:description" content="Handcrafted Aari embroidery and customized stitching for your perfect moments.">
-    <meta name="twitter:image" content="REPLACE_WITH_ABSOLUTE_HERO_IMAGE_URL">
+    <meta name="twitter:image" content="__SITE_URL__/assets/logo/og-image.jpg">
+    <meta name="twitter:image:alt" content="Dheera Creatives — handcrafted Aari embroidery and custom stitching">
 
     <!-- Icons and Manifest -->
-    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="assets/favicon.svg">
+    <link rel="icon" href="assets/icons/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
 
     <!-- Fonts (preconnect for performance) -->
@@ -46,14 +61,16 @@
     <script src="script.js" defer></script>
 
     <!-- Structured data: only facts supplied by the brand are represented.
-         No aggregate rating, no physical address for Dheera Creatives. -->
+         No aggregate rating, no physical address for Dheera Creatives.
+         __SITE_URL__ is replaced with config.js -> website.url at runtime. -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "Organization",
       "name": "Dheera Creatives",
       "description": "Handcrafted Aari embroidery and custom stitching, offering personalized blouse designs, bridal embroidery and custom creations with shipping across Tamil Nadu.",
-      "url": "REPLACE_WITH_FINAL_CANONICAL_URL",
+      "url": "__SITE_URL__/",
+      "logo": "__SITE_URL__/assets/logo/favicon.png",
       "sameAs": [
         "https://www.instagram.com/dheera_creatives/"
       ]
@@ -64,7 +81,7 @@
       "@context": "https://schema.org",
       "@type": "WebSite",
       "name": "Dheera Creatives",
-      "url": "REPLACE_WITH_FINAL_CANONICAL_URL"
+      "url": "__SITE_URL__/"
     }
     </script>
 </head>
@@ -76,7 +93,18 @@
         <nav class="nav container" aria-label="Primary">
             <div class="nav-logo">
                 <a href="#home" class="nav-logo-link" aria-label="Dheera Creatives — home">
-                    <span class="nav-logo-text">Dheera Creatives</span>
+                    <!-- Brand logo. The supplied artwork is a JPEG with a light,
+                         opaque background, so it is placed on a plate whose colour
+                         matches the logo background and it reads cleanly on the
+                         dark header. Decorative: the link already carries the
+                         accessible name. -->
+                    <span class="logo-plate logo-plate-header">
+                        <img id="headerLogo"
+                             src="assets/logo/primary-horizontal.jpg"
+                             alt=""
+                             width="1000" height="530"
+                             decoding="async">
+                    </span>
                 </a>
             </div>
 
@@ -89,6 +117,7 @@
             <ul class="nav-menu" id="navMenu">
                 <li class="nav-item"><a href="#home" class="nav-link">Home</a></li>
                 <li class="nav-item"><a href="#collections" class="nav-link">Collections</a></li>
+                <li class="nav-item"><a href="#gallery" class="nav-link">Gallery</a></li>
                 <li class="nav-item"><a href="#about" class="nav-link">Our Craft</a></li>
                 <li class="nav-item"><a href="#process" class="nav-link">Process</a></li>
                 <li class="nav-item"><a href="#testimonials" class="nav-link">Reviews</a></li>
@@ -120,11 +149,12 @@
 
                 <div class="hero-visual">
                     <div class="hero-image-wrapper">
-                        <!-- HERO IMAGE: replace assets/hero-placeholder.jpg with your final photo.
-                             Keep the same filename to preserve this composition. -->
-                        <img src="assets/hero-placeholder.jpg"
-                             alt="Intricate handcrafted Aari embroidery with gold threadwork on a rich green fabric"
-                             class="hero-image" width="1200" height="900" loading="eager" decoding="async" fetchpriority="high">
+                        <!-- HERO IMAGE: assets/aari-embroidery-hero.webp
+                             Cropped from one of the supplied embroidery photos to
+                             this slot's 4:3 ratio. Swap the file to change it. -->
+                        <img src="assets/aari-embroidery-hero.webp"
+                             alt="Handcrafted Aari embroidery by Dheera Creatives"
+                             class="hero-image" width="900" height="675" loading="eager" decoding="async" fetchpriority="high">
 
                         <!-- Floating credibility cards (decorative, non-interactive) -->
                         <div class="floating-card floating-card-1" aria-hidden="true">
@@ -250,7 +280,7 @@
                 <div class="collections-grid">
                     <article class="collection-card">
                         <div class="collection-image-wrapper">
-                            <img src="assets/products/embroidery_detail_1.jpg" alt="Aari embroidered blouse with detailed gold threadwork" class="collection-image" width="700" height="525" loading="lazy" decoding="async">
+                            <img src="assets/products/aari-embroidery-collection-1.webp" alt="Handcrafted Aari embroidery by Dheera Creatives" class="collection-image" width="720" height="540" loading="lazy" decoding="async">
                         </div>
                         <div class="collection-content">
                             <h3 class="collection-title">Aari Embroidered Blouses</h3>
@@ -261,7 +291,7 @@
 
                     <article class="collection-card">
                         <div class="collection-image-wrapper">
-                            <img src="assets/products/embroidery_detail_2.jpg" alt="Richly embellished bridal garment with gold embroidery detail" class="collection-image" width="700" height="525" loading="lazy" decoding="async">
+                            <img src="assets/products/aari-embroidery-collection-2.webp" alt="Handcrafted Aari embroidery by Dheera Creatives" class="collection-image" width="720" height="540" loading="lazy" decoding="async">
                         </div>
                         <div class="collection-content">
                             <h3 class="collection-title">Bridal Embroidery</h3>
@@ -272,7 +302,7 @@
 
                     <article class="collection-card">
                         <div class="collection-image-wrapper">
-                            <img src="assets/products/embroidery_detail_3.jpg" alt="Close view of embroidered sleeve with floral thread motif" class="collection-image" width="700" height="525" loading="lazy" decoding="async">
+                            <img src="assets/products/aari-embroidery-collection-3.webp" alt="Handcrafted Aari embroidery by Dheera Creatives" class="collection-image" width="720" height="540" loading="lazy" decoding="async">
                         </div>
                         <div class="collection-content">
                             <h3 class="collection-title">Sleeve Designs</h3>
@@ -283,7 +313,7 @@
 
                     <article class="collection-card">
                         <div class="collection-image-wrapper">
-                            <img src="assets/products/embroidery_detail_4.jpg" alt="Tailor's measuring tape and fabric indicating custom stitching" class="collection-image" width="700" height="525" loading="lazy" decoding="async">
+                            <img src="assets/products/aari-embroidery-collection-4.webp" alt="Handcrafted Aari embroidery by Dheera Creatives" class="collection-image" width="720" height="540" loading="lazy" decoding="async">
                         </div>
                         <div class="collection-content">
                             <h3 class="collection-title">Custom Stitching</h3>
@@ -294,7 +324,7 @@
 
                     <article class="collection-card">
                         <div class="collection-image-wrapper">
-                            <img src="assets/products/embroidery_detail_5.jpg" alt="Folded fabric with hand embroidery in warm festive tones" class="collection-image" width="700" height="525" loading="lazy" decoding="async">
+                            <img src="assets/products/aari-embroidery-collection-5.webp" alt="Handcrafted Aari embroidery by Dheera Creatives" class="collection-image" width="720" height="540" loading="lazy" decoding="async">
                         </div>
                         <div class="collection-content">
                             <h3 class="collection-title">Personalized Occasion Wear</h3>
@@ -305,7 +335,7 @@
 
                     <article class="collection-card">
                         <div class="collection-image-wrapper">
-                            <img src="assets/products/embroidery_detail_6.jpg" alt="Detailed embroidery motif with gold and coloured thread" class="collection-image" width="700" height="525" loading="lazy" decoding="async">
+                            <img src="assets/products/aari-embroidery-collection-6.webp" alt="Handcrafted Aari embroidery by Dheera Creatives" class="collection-image" width="720" height="540" loading="lazy" decoding="async">
                         </div>
                         <div class="collection-content">
                             <h3 class="collection-title">Custom Embroidery Details</h3>
@@ -317,12 +347,173 @@
             </div>
         </section>
 
+        <!-- Gallery Section -->
+        <section id="gallery" class="gallery section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">A Closer Look at Our Work</h2>
+                    <p class="section-subtitle">Every creation is worked by hand. Browse the details, motifs and finishes behind our designs — select any photo to view it larger, or enquire about the piece you love.</p>
+                </div>
+
+                <!-- 24 photos. Each <a> points at the full-size image, so the link is
+                     still usable (and crawlable) when JavaScript is off; the grid itself
+                     only fetches the 640px preview from thumbs/. To change the set, run
+                     the project's asset pipeline and re-generate these 24 blocks. -->
+                <div class="gallery-grid" id="galleryGrid">
+                    <a class="gallery-item" href="assets/embroidery/aari-embroidery-design-01.webp">
+                        <img src="assets/embroidery/thumbs/aari-embroidery-design-01.webp"
+                             alt="Handcrafted Aari embroidery by Dheera Creatives, gallery image 1"
+                             width="640" height="400"
+                             loading="lazy" decoding="async">
+                    </a>
+                    <a class="gallery-item" href="assets/embroidery/aari-embroidery-design-02.webp">
+                        <img src="assets/embroidery/thumbs/aari-embroidery-design-02.webp"
+                             alt="Handcrafted Aari embroidery by Dheera Creatives, gallery image 2"
+                             width="640" height="400"
+                             loading="lazy" decoding="async">
+                    </a>
+                    <a class="gallery-item" href="assets/embroidery/aari-embroidery-design-03.webp">
+                        <img src="assets/embroidery/thumbs/aari-embroidery-design-03.webp"
+                             alt="Handcrafted Aari embroidery by Dheera Creatives, gallery image 3"
+                             width="640" height="400"
+                             loading="lazy" decoding="async">
+                    </a>
+                    <a class="gallery-item" href="assets/embroidery/aari-embroidery-design-04.webp">
+                        <img src="assets/embroidery/thumbs/aari-embroidery-design-04.webp"
+                             alt="Handcrafted Aari embroidery by Dheera Creatives, gallery image 4"
+                             width="640" height="400"
+                             loading="lazy" decoding="async">
+                    </a>
+                    <a class="gallery-item" href="assets/embroidery/aari-embroidery-design-05.webp">
+                        <img src="assets/embroidery/thumbs/aari-embroidery-design-05.webp"
+                             alt="Handcrafted Aari embroidery by Dheera Creatives, gallery image 5"
+                             width="640" height="400"
+                             loading="lazy" decoding="async">
+                    </a>
+                    <a class="gallery-item" href="assets/embroidery/aari-embroidery-design-06.webp">
+                        <img src="assets/embroidery/thumbs/aari-embroidery-design-06.webp"
+                             alt="Handcrafted Aari embroidery by Dheera Creatives, gallery image 6"
+                             width="640" height="800"
+                             loading="lazy" decoding="async">
+                    </a>
+                    <a class="gallery-item" href="assets/embroidery/aari-embroidery-design-07.webp">
+                        <img src="assets/embroidery/thumbs/aari-embroidery-design-07.webp"
+                             alt="Handcrafted Aari embroidery by Dheera Creatives, gallery image 7"
+                             width="640" height="800"
+                             loading="lazy" decoding="async">
+                    </a>
+                    <a class="gallery-item" href="assets/embroidery/aari-embroidery-design-08.webp">
+                        <img src="assets/embroidery/thumbs/aari-embroidery-design-08.webp"
+                             alt="Handcrafted Aari embroidery by Dheera Creatives, gallery image 8"
+                             width="640" height="800"
+                             loading="lazy" decoding="async">
+                    </a>
+                    <a class="gallery-item" href="assets/embroidery/aari-embroidery-design-09.webp">
+                        <img src="assets/embroidery/thumbs/aari-embroidery-design-09.webp"
+                             alt="Handcrafted Aari embroidery by Dheera Creatives, gallery image 9"
+                             width="480" height="854"
+                             loading="lazy" decoding="async">
+                    </a>
+                    <a class="gallery-item" href="assets/embroidery/aari-embroidery-design-10.webp">
+                        <img src="assets/embroidery/thumbs/aari-embroidery-design-10.webp"
+                             alt="Handcrafted Aari embroidery by Dheera Creatives, gallery image 10"
+                             width="640" height="800"
+                             loading="lazy" decoding="async">
+                    </a>
+                    <a class="gallery-item" href="assets/embroidery/aari-embroidery-design-11.webp">
+                        <img src="assets/embroidery/thumbs/aari-embroidery-design-11.webp"
+                             alt="Handcrafted Aari embroidery by Dheera Creatives, gallery image 11"
+                             width="640" height="800"
+                             loading="lazy" decoding="async">
+                    </a>
+                    <a class="gallery-item" href="assets/embroidery/aari-embroidery-design-12.webp">
+                        <img src="assets/embroidery/thumbs/aari-embroidery-design-12.webp"
+                             alt="Handcrafted Aari embroidery by Dheera Creatives, gallery image 12"
+                             width="480" height="854"
+                             loading="lazy" decoding="async">
+                    </a>
+                    <a class="gallery-item" href="assets/embroidery/aari-embroidery-design-13.webp">
+                        <img src="assets/embroidery/thumbs/aari-embroidery-design-13.webp"
+                             alt="Handcrafted Aari embroidery by Dheera Creatives, gallery image 13"
+                             width="640" height="800"
+                             loading="lazy" decoding="async">
+                    </a>
+                    <a class="gallery-item" href="assets/embroidery/aari-embroidery-design-14.webp">
+                        <img src="assets/embroidery/thumbs/aari-embroidery-design-14.webp"
+                             alt="Handcrafted Aari embroidery by Dheera Creatives, gallery image 14"
+                             width="640" height="800"
+                             loading="lazy" decoding="async">
+                    </a>
+                    <a class="gallery-item" href="assets/embroidery/aari-embroidery-design-15.webp">
+                        <img src="assets/embroidery/thumbs/aari-embroidery-design-15.webp"
+                             alt="Handcrafted Aari embroidery by Dheera Creatives, gallery image 15"
+                             width="640" height="800"
+                             loading="lazy" decoding="async">
+                    </a>
+                    <a class="gallery-item" href="assets/embroidery/aari-embroidery-design-16.webp">
+                        <img src="assets/embroidery/thumbs/aari-embroidery-design-16.webp"
+                             alt="Handcrafted Aari embroidery by Dheera Creatives, gallery image 16"
+                             width="640" height="800"
+                             loading="lazy" decoding="async">
+                    </a>
+                    <a class="gallery-item" href="assets/embroidery/aari-embroidery-design-17.webp">
+                        <img src="assets/embroidery/thumbs/aari-embroidery-design-17.webp"
+                             alt="Handcrafted Aari embroidery by Dheera Creatives, gallery image 17"
+                             width="640" height="800"
+                             loading="lazy" decoding="async">
+                    </a>
+                    <a class="gallery-item" href="assets/embroidery/aari-embroidery-design-18.webp">
+                        <img src="assets/embroidery/thumbs/aari-embroidery-design-18.webp"
+                             alt="Handcrafted Aari embroidery by Dheera Creatives, gallery image 18"
+                             width="480" height="854"
+                             loading="lazy" decoding="async">
+                    </a>
+                    <a class="gallery-item" href="assets/embroidery/aari-embroidery-design-19.webp">
+                        <img src="assets/embroidery/thumbs/aari-embroidery-design-19.webp"
+                             alt="Handcrafted Aari embroidery by Dheera Creatives, gallery image 19"
+                             width="640" height="800"
+                             loading="lazy" decoding="async">
+                    </a>
+                    <a class="gallery-item" href="assets/embroidery/aari-embroidery-design-20.webp">
+                        <img src="assets/embroidery/thumbs/aari-embroidery-design-20.webp"
+                             alt="Handcrafted Aari embroidery by Dheera Creatives, gallery image 20"
+                             width="640" height="800"
+                             loading="lazy" decoding="async">
+                    </a>
+                    <a class="gallery-item" href="assets/embroidery/aari-embroidery-design-21.webp">
+                        <img src="assets/embroidery/thumbs/aari-embroidery-design-21.webp"
+                             alt="Handcrafted Aari embroidery by Dheera Creatives, gallery image 21"
+                             width="640" height="800"
+                             loading="lazy" decoding="async">
+                    </a>
+                    <a class="gallery-item" href="assets/embroidery/aari-embroidery-design-22.webp">
+                        <img src="assets/embroidery/thumbs/aari-embroidery-design-22.webp"
+                             alt="Handcrafted Aari embroidery by Dheera Creatives, gallery image 22"
+                             width="640" height="1136"
+                             loading="lazy" decoding="async">
+                    </a>
+                    <a class="gallery-item" href="assets/embroidery/aari-embroidery-design-23.webp">
+                        <img src="assets/embroidery/thumbs/aari-embroidery-design-23.webp"
+                             alt="Handcrafted Aari embroidery by Dheera Creatives, gallery image 23"
+                             width="640" height="800"
+                             loading="lazy" decoding="async">
+                    </a>
+                    <a class="gallery-item" href="assets/embroidery/aari-embroidery-design-24.webp">
+                        <img src="assets/embroidery/thumbs/aari-embroidery-design-24.webp"
+                             alt="Handcrafted Aari embroidery by Dheera Creatives, gallery image 24"
+                             width="640" height="800"
+                             loading="lazy" decoding="async">
+                    </a>
+                </div>
+            </div>
+        </section>
+
         <!-- About Section -->
         <section id="about" class="about section">
             <div class="container">
                 <div class="about-grid">
                     <div class="about-image-wrapper">
-                        <img src="assets/about-image.jpg" alt="Artisan working carefully on hand embroidery with thread and fabric" class="about-image" width="800" height="667" loading="lazy" decoding="async">
+                        <img src="assets/aari-embroidery-about.webp" alt="Handcrafted Aari embroidery by Dheera Creatives" class="about-image" width="810" height="675" loading="lazy" decoding="async">
                     </div>
                     <div class="about-content">
                         <h2 class="section-title">Crafted with Passion, Finished with Care</h2>
@@ -552,11 +743,11 @@
                 <div class="contact-grid">
                     <div class="contact-card contact-card-primary">
                         <div class="contact-card-media">
-                            <!-- Replace with your own embroidery photo: assets/contact-embroidery.jpg
-                                 Keep the filename to preserve this card composition. -->
-                            <img src="assets/contact-embroidery.jpg"
-                                 alt="Close-up of hand embroidery with gold thread worked onto fabric"
-                                 width="900" height="560" loading="lazy" decoding="async">
+                            <!-- CONTACT CARD IMAGE: assets/aari-embroidery-contact.webp
+                                 Cropped to this slot's 16:10 ratio. Swap the file to change it. -->
+                            <img src="assets/aari-embroidery-contact.webp"
+                                 alt="Handcrafted Aari embroidery by Dheera Creatives"
+                                 width="900" height="563" loading="lazy" decoding="async">
                         </div>
 
                         <div class="contact-card-primary-body">
@@ -687,6 +878,53 @@
 
     <!-- Footer is rendered by script.js from config.js -->
     <footer class="footer" id="siteFooter"></footer>
+
+    <!-- Gallery lightbox. Hidden by default via CSS; script.js adds .is-open.
+         Declared once and reused for all 24 photos. Without JavaScript the
+         gallery links open the full-size image directly instead. -->
+    <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Gallery image viewer">
+        <div class="lightbox-backdrop" data-lightbox-dismiss></div>
+
+        <div class="lightbox-panel">
+            <button type="button" class="lightbox-btn lightbox-close" aria-label="Close gallery viewer">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M18 6L6 18M6 6l12 12"></path>
+                </svg>
+            </button>
+
+            <button type="button" class="lightbox-btn lightbox-prev" aria-label="Previous image">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M15 18l-6-6 6-6"></path>
+                </svg>
+            </button>
+
+            <figure class="lightbox-figure">
+                <!-- src/alt are assigned by initGallery() in script.js when the
+                     viewer opens, so nothing is fetched while it is hidden. -->
+                <img class="lightbox-image" alt="">
+            </figure>
+
+            <button type="button" class="lightbox-btn lightbox-next" aria-label="Next image">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M9 18l6-6-6-6"></path>
+                </svg>
+            </button>
+
+            <div class="lightbox-bar">
+                <p class="lightbox-caption" id="lightboxCaption"></p>
+                <div class="lightbox-actions">
+                    <p class="lightbox-counter" id="lightboxCounter" aria-hidden="true"></p>
+                    <a class="btn btn-primary lightbox-enquire" href="#" target="_blank" rel="noopener noreferrer">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 004.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0012.04 2zm0 1.67c2.2 0 4.27.86 5.83 2.42a8.2 8.2 0 012.41 5.83c0 4.54-3.7 8.24-8.25 8.24a8.2 8.2 0 01-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.18 8.18 0 01-1.26-4.38c0-4.54 3.7-8.25 8.25-8.25zm-4.6 3.44c-.22 0-.57.08-.87.4-.3.33-1.14 1.11-1.14 2.71 0 1.6 1.17 3.15 1.33 3.36.16.22 2.26 3.6 5.58 4.9.78.3 1.39.48 1.86.62.78.25 1.5.21 2.06.13.63-.09 1.94-.79 2.21-1.56.27-.77.27-1.43.19-1.56-.08-.14-.3-.22-.63-.39-.33-.16-1.94-.96-2.24-1.07-.3-.11-.52-.16-.74.17-.22.33-.85 1.07-1.04 1.29-.19.22-.38.25-.71.08-.33-.16-1.39-.51-2.65-1.63-.98-.87-1.64-1.95-1.83-2.28-.19-.33-.02-.51.15-.67.15-.15.33-.39.49-.58.16-.19.21-.33.32-.55.11-.22.05-.41-.03-.58-.08-.16-.72-1.77-1-2.42-.26-.63-.53-.54-.72-.55l-.63-.01z"/>
+                        </svg>
+                        <span class="lightbox-enquire-label">Enquire Now on WhatsApp</span>
+                    </a>
+                </div>
+                <p class="lightbox-hint">Use the arrow keys to browse, Esc to close.</p>
+            </div>
+        </div>
+    </div>
 
     <noscript>
         <div class="noscript-notice">

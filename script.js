@@ -38,6 +38,65 @@
   }
 
   /* ------------------------------------------------------------------
+     Absolute <head> URLs — canonical, Open Graph, Twitter, JSON-LD.
+     The domain is never hard-coded in index.html: those tags carry the
+     __SITE_URL__ token, which is swapped here for website.url from
+     config.js. While that value is still the REPLACE_WITH... placeholder,
+     the browser's own origin is used instead, so a deployed copy
+     self-corrects with no edits.
+     NOTE: social crawlers (Facebook, WhatsApp, X, LinkedIn, Slack) do not
+     run JavaScript, so they never see this substitution.
+     ------------------------------------------------------------------ */
+  var SITE_URL_TOKEN = '__SITE_URL__';
+
+  function resolveSiteOrigin(website) {
+    var configured = String((website && website.url) || '').trim().replace(/\/+$/, '');
+    if (configured && configured.indexOf('REPLACE_WITH') === -1) {
+      return configured;
+    }
+
+    var loc = window.location || {};
+    if (loc.protocol === 'http:' || loc.protocol === 'https:') {
+      return String(loc.origin || '').replace(/\/+$/, '');
+    }
+
+    return '';
+  }
+
+  function applySiteUrl() {
+    if (!config) return;
+
+    var head = document.head;
+    if (!head) return;
+
+    var origin = resolveSiteOrigin(config.website);
+    if (!origin) {
+      console.warn(
+        '[Dheera Creatives] No site origin available (website.url is unset and this page ' +
+        'is not served over http/https); <head> absolute URLs were left as ' + SITE_URL_TOKEN + '.'
+      );
+      return;
+    }
+
+    // 1. Attribute values: canonical href, and og:* / twitter:* content.
+    //    The attribute list is copied first so mutating values mid-walk is safe.
+    Array.prototype.forEach.call(head.querySelectorAll('*'), function (el) {
+      Array.prototype.slice.call(el.attributes).forEach(function (attr) {
+        if (attr.value.indexOf(SITE_URL_TOKEN) !== -1) {
+          el.setAttribute(attr.name, attr.value.split(SITE_URL_TOKEN).join(origin));
+        }
+      });
+    });
+
+    // 2. JSON-LD is script text, not an attribute.
+    Array.prototype.forEach.call(head.querySelectorAll('script[type="application/ld+json"]'), function (block) {
+      if (block.textContent.indexOf(SITE_URL_TOKEN) !== -1) {
+        block.textContent = block.textContent.split(SITE_URL_TOKEN).join(origin);
+      }
+    });
+  }
+
+  /* ------------------------------------------------------------------
      Header: solid background after scroll (rAF-throttled)
      ------------------------------------------------------------------ */
   function initHeader() {
@@ -293,6 +352,195 @@
   }
 
   /* ------------------------------------------------------------------
+     Gallery lightbox
+     Opens the full-size photo behind a gallery thumbnail and hands the
+     photo being viewed to WhatsApp via the "Enquire Now" button.
+     Keyboard: Esc closes, ArrowLeft/ArrowRight browse, Tab is trapped.
+     ------------------------------------------------------------------ */
+  function initGallery() {
+    var items = Array.prototype.slice.call(document.querySelectorAll('.gallery-item'));
+    var lightbox = document.getElementById('lightbox');
+    if (!items.length || !lightbox) return;
+
+    var imageEl = lightbox.querySelector('.lightbox-image');
+    var captionEl = lightbox.querySelector('.lightbox-caption');
+    var counterEl = lightbox.querySelector('.lightbox-counter');
+    var enquireEl = lightbox.querySelector('.lightbox-enquire');
+    var enquireLabel = lightbox.querySelector('.lightbox-enquire-label');
+    var closeBtn = lightbox.querySelector('.lightbox-close');
+    var prevBtn = lightbox.querySelector('.lightbox-prev');
+    var nextBtn = lightbox.querySelector('.lightbox-next');
+
+    var index = 0;
+    var lastFocused = null;
+    var isOpen = false;
+
+    function fullSrcOf(item) {
+      return item.getAttribute('href') || '';
+    }
+
+    function altOf(item) {
+      var img = item.querySelector('img');
+      return img ? (img.getAttribute('alt') || '') : '';
+    }
+
+    // Absolute URL for the photo being viewed, so the pre-filled WhatsApp
+    // message links to something the brand can actually open. Falls back to
+    // the page-relative path when no origin can be resolved.
+    function absoluteUrl(src) {
+      var origin = config ? resolveSiteOrigin(config.website) : '';
+      var clean = String(src).replace(/^\.?\//, '');
+      return origin ? origin + '/' + clean : clean;
+    }
+
+    // NOTE: WhatsApp click-to-chat can only pre-fill *text* — it cannot attach
+    // a file. The photo is therefore sent as a link, with {image} replaced by
+    // its absolute URL so the brand sees which design is meant.
+    function applyEnquiryLink(src) {
+      if (!enquireEl) return;
+
+      var client = (config && config.client) || {};
+      var digits = String(client.whatsapp || '').replace(/[^\d]/g, '');
+      var template = (config && config.enquiry && config.enquiry.whatsappMessage) ||
+        'I would like to enquire about this design: {image}';
+
+      if (digits) {
+        var message = template.split('{image}').join(absoluteUrl(src));
+        enquireEl.setAttribute('href', 'https://wa.me/' + digits + '?text=' + encodeURIComponent(message));
+        enquireEl.setAttribute('target', '_blank');
+        if (enquireLabel) enquireLabel.textContent = 'Enquire Now on WhatsApp';
+      } else if (client.instagramUrl) {
+        // No WhatsApp number configured yet — point at Instagram rather than
+        // leaving a dead button behind.
+        enquireEl.setAttribute('href', client.instagramUrl);
+        enquireEl.setAttribute('target', '_blank');
+        if (enquireLabel) enquireLabel.textContent = 'Enquire on Instagram';
+      }
+    }
+
+    function render() {
+      var item = items[index];
+      var src = fullSrcOf(item);
+      var alt = altOf(item);
+
+      imageEl.setAttribute('src', src);
+      imageEl.setAttribute('alt', alt);
+      if (captionEl) captionEl.textContent = alt;
+      if (counterEl) counterEl.textContent = (index + 1) + ' of ' + items.length;
+      applyEnquiryLink(src);
+
+      // Pre-load the neighbouring photos so arrow-key browsing feels instant.
+      [index + 1, index - 1].forEach(function (i) {
+        var neighbour = items[(i + items.length) % items.length];
+        if (neighbour) {
+          var pre = new Image();
+          pre.src = fullSrcOf(neighbour);
+        }
+      });
+    }
+
+    function show(i) {
+      index = (i + items.length) % items.length;
+      render();
+    }
+
+    function focusables() {
+      return [closeBtn, prevBtn, nextBtn, enquireEl].filter(function (el) {
+        return !!el;
+      });
+    }
+
+    function open(i) {
+      lastFocused = document.activeElement;
+      index = i;
+      render();
+      lightbox.classList.add('is-open');
+      document.body.classList.add('lightbox-open');
+      isOpen = true;
+      if (closeBtn) closeBtn.focus();
+      document.addEventListener('keydown', onKeydown);
+    }
+
+    function close() {
+      if (!isOpen) return;
+      isOpen = false;
+      lightbox.classList.remove('is-open');
+      document.body.classList.remove('lightbox-open');
+      document.removeEventListener('keydown', onKeydown);
+      imageEl.removeAttribute('src');
+      if (lastFocused && typeof lastFocused.focus === 'function') {
+        lastFocused.focus();
+      }
+    }
+
+    function onKeydown(event) {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        close();
+        return;
+      }
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        show(index - 1);
+        return;
+      }
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        show(index + 1);
+        return;
+      }
+      if (event.key !== 'Tab') return;
+
+      // Focus trap — keep Tab cycling inside the dialog.
+      var list = focusables();
+      if (!list.length) return;
+      var first = list[0];
+      var last = list[list.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    items.forEach(function (item, i) {
+      item.addEventListener('click', function (event) {
+        // Modified/middle clicks keep plain link behaviour so the full-size
+        // image can still be opened in a new tab.
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+        event.preventDefault();
+        open(i);
+      });
+    });
+
+    if (closeBtn) closeBtn.addEventListener('click', close);
+    if (prevBtn) prevBtn.addEventListener('click', function () { show(index - 1); });
+    if (nextBtn) nextBtn.addEventListener('click', function () { show(index + 1); });
+
+    lightbox.addEventListener('click', function (event) {
+      if (event.target.hasAttribute('data-lightbox-dismiss')) close();
+    });
+
+    // Touch swipe, matching the testimonial carousel.
+    var startX = 0;
+    var startY = 0;
+
+    lightbox.addEventListener('touchstart', function (event) {
+      startX = event.changedTouches[0].clientX;
+      startY = event.changedTouches[0].clientY;
+    }, { passive: true });
+
+    lightbox.addEventListener('touchend', function (event) {
+      var deltaX = event.changedTouches[0].clientX - startX;
+      var deltaY = event.changedTouches[0].clientY - startY;
+      if (Math.abs(deltaX) < 45 || Math.abs(deltaX) < Math.abs(deltaY)) return;
+      show(deltaX < 0 ? index + 1 : index - 1);
+    }, { passive: true });
+  }
+
+  /* ------------------------------------------------------------------
      Scroll reveal (respects reduced motion)
      ------------------------------------------------------------------ */
   function initReveal() {
@@ -363,6 +611,14 @@
       if (client.shippingMessage) el.textContent = client.shippingMessage;
     });
 
+    // Brand logo (header). The markup carries the same path as a fallback so
+    // the logo still shows if config.js is unavailable.
+    var logo = client.logo || {};
+    var headerLogo = document.getElementById('headerLogo');
+    if (headerLogo && logo.header) {
+      headerLogo.setAttribute('src', logo.header);
+    }
+
     // Agency (DigiMaraa) contact details
     var addr = agency.address || {};
     var addressParts = [
@@ -418,7 +674,7 @@
       '<div class="footer-container container">' +
         '<div class="footer-main">' +
           '<div class="footer-brand">' +
-            '<span class="footer-logo-text">' + escapeHtml(client.name) + '</span>' +
+            footerBrandMark(client) +
             '<p class="footer-description">' + escapeHtml(client.tagline) + '</p>' +
             '<div class="footer-instagram">' +
               '<a class="footer-social-link" href="' + escapeHtml(client.instagramUrl) + '" target="_blank" rel="noopener noreferrer">' +
@@ -432,6 +688,7 @@
             footerColumn('Navigation', [
               ['Home', '#home'],
               ['Collections', '#collections'],
+              ['Gallery', '#gallery'],
               ['Our Craft', '#about'],
               ['Process', '#process'],
               ['Reviews', '#testimonials'],
@@ -465,6 +722,24 @@
           '</div>' +
         '</div>' +
       '</div>';
+  }
+
+  // Brand mark for the footer. The supplied logo artwork is a JPEG with a
+  // light, opaque background, so it sits on a plate whose colour matches that
+  // background. Falls back to a text wordmark if no logo is configured.
+  function footerBrandMark(client) {
+    var logoPath = client.logo && client.logo.footer;
+
+    if (!logoPath) {
+      return '<span class="footer-logo-text">' + escapeHtml(client.name) + '</span>';
+    }
+
+    // width/height mirror the actual file (assets/logo/secondary-stacked-trimmed.jpg)
+    // so the browser reserves the correct box before the image loads. Update both
+    // if the footer logo is replaced.
+    return '<span class="logo-plate logo-plate-footer">' +
+      '<img src="' + escapeHtml(logoPath) + '" alt="' + escapeHtml(client.name) + '" width="480" height="309" loading="lazy" decoding="async">' +
+      '</span>';
   }
 
   function footerColumn(heading, links) {
@@ -653,6 +928,7 @@
      Boot
      ------------------------------------------------------------------ */
   function init() {
+    applySiteUrl();
     initHeader();
     initNavigation();
     initSmoothScroll();
@@ -661,6 +937,7 @@
     initCarousel();
     initReveal();
     applyConfig();
+    initGallery();
     initEnquiryForm();
   }
 
