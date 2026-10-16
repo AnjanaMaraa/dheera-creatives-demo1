@@ -37,7 +37,7 @@ dheera_creatives_demo1/
 ├── sitemap.xml         # SEO sitemap
 ├── manifest.json       # PWA manifest
 ├── assets/
-│   ├── aari-embroidery-hero.webp         # Hero image (900x675, 4:3)
+│   ├── aari-embroidery-hero.webp         # Unused legacy hero (900x675, 4:3)
 │   ├── aari-embroidery-about.webp        # About section image (810x675, 6:5)
 │   ├── aari-embroidery-contact.webp      # Contact card image (900x563, 16:10)
 │   ├── embroidery/                       # Full gallery photos + 640px previews
@@ -135,41 +135,43 @@ are sticky. After changing them, clear the icon cache or test in a fresh profile
 window, otherwise you may still see the previous icon.
 
 ### Site domain (`config.js` → `website.url`)
-The domain is set in **one place only**:
+The domain is configured in **one place**, `config.js`:
 
 ```js
 // config.js
 website: {
-  url: "https://your-domain.com",   // no trailing slash
+  url: "https://dheera.digimaraa.in",   // no trailing slash
   ...
 }
 ```
 
-`index.html` contains **no domain at all**. Its absolute URLs — `canonical`, `og:url`,
-`og:image`, `twitter:image` and both JSON-LD blocks — carry the literal token
-`__SITE_URL__`, which `applySiteUrl()` in `script.js` replaces at runtime.
+Set to the production origin, `https://dheera.digimaraa.in`. If it is ever left reading
+`REPLACE_WITH...`, the script falls back to `window.location.origin`, so any deployed or
+previewed copy fills in the correct origin automatically without edits.
 
-While `website.url` still reads `REPLACE_WITH...`, the script falls back to
-`window.location.origin`, so any deployed or previewed copy fills in the correct
-origin automatically without edits.
+**What is config-driven.** The two JSON-LD blocks in `index.html` carry the literal token
+`__SITE_URL__`, which `applySiteUrl()` in `script.js` replaces at runtime. Google executes
+JavaScript, so it sees the resolved values — search/structured data stays single-source.
 
-Two files are **not** covered by this, because crawlers read them directly (no JS runs):
-`sitemap.xml` and `robots.txt`. Those still contain the literal
-`REPLACE_WITH_FINAL_DOMAIN` and must be updated by hand when the domain is final.
+**What is hard-coded, and why.** Social crawlers — Facebook, WhatsApp, X, LinkedIn, Slack,
+Discord, iMessage — read raw HTML and **never run JavaScript**. A config-driven value is
+therefore invisible to them, and no pure-static site can work around that: making it dynamic
+would need server-side templating or a build step that rewrites HTML at deploy time, neither
+of which exists here (GitHub Pages serves the files as-is). So three spots are literal URLs,
+all currently pointing at `https://dheera.digimaraa.in`:
 
-> ⚠️ **Trade-off you must know about.** Absolute URLs built by JavaScript work for
-> browsers and for Google (which executes JS), but **not** for social crawlers —
-> Facebook, WhatsApp, X, LinkedIn, Slack, Discord and iMessage read raw HTML and never
-> run scripts. They will see the literal `__SITE_URL__` token and show **no preview
-> image**. If link previews matter to you, hard-code the real absolute URL in
-> `index.html` for the `og:image`, `og:url` and `twitter:image` tags instead of relying
-> on the token. Everything else (canonical, JSON-LD) can stay dynamic.
->
-> One more detail: until the script runs, `canonical` literally contains
-> `__SITE_URL__`. Google executes JavaScript and sees the resolved value, but a crawler
-> that does not run JS would read a bogus canonical. To remove that risk entirely,
-> change the canonical to the root-relative `href="/"` — it resolves correctly on its
-> own and needs no substitution.
+| Where | Value | Note |
+|---|---|---|
+| `index.html` `og:url` | `https://dheera.digimaraa.in/` | absolute, per Open Graph spec |
+| `index.html` `og:image`, `twitter:image` | `https://dheera.digimaraa.in/assets/logo/og-image.jpg` | must be fetchable without JS |
+| `sitemap.xml`, `robots.txt` | `https://dheera.digimaraa.in/...` | crawlers read these files directly |
+
+`canonical` avoids the problem entirely: it is the root-relative `href="/"`, which resolves
+correctly on any host (production, preview, localhost) and can never go stale.
+
+> ⚠️ **If the domain ever changes**, update `website.url` in `config.js` **plus** the four
+> hard-coded spots above (`og:url`, `og:image` and `twitter:image` in `index.html`, and
+> `sitemap.xml` / `robots.txt`). Grep for the old domain to find them all.
 
 ### Open Graph preview: "could not load image"
 
@@ -181,8 +183,9 @@ Every share preview fetches the image URL itself. If it reports it could not loa
 2. **The page URL must be public.** Crawlers cannot reach `localhost`, `file://`, or a
    private/preview deployment. Test against the production URL.
 3. **The image URL must be absolute `https://`.** Crawlers do not resolve relative paths.
-4. **Remember the JS caveat above** — if `og:image` still contains `__SITE_URL__`, social
-   crawlers cannot resolve it. Hard-code the absolute URL instead.
+4. **`og:image` must be a hard-coded absolute URL.** It already is. If it ever
+   contains `__SITE_URL__`, non-JS crawlers cannot resolve it — put the absolute URL
+   back in `index.html`.
 5. **Force a re-scrape.** Platforms cache aggressively — use Facebook's Sharing Debugger
    (Scrape Again), LinkedIn Post Inspector or X's Card Validator. Always clear the
    cached scrape after fixing the URL.
@@ -192,15 +195,17 @@ baseline JPEG (not progressive), exactly 1200×630, sRGB, EXIF orientation 1, no
 profile, ending in a valid EOI marker. No known crawler rejects those characteristics.
 
 ### Update Hero Image
-1. Replace `assets/aari-embroidery-hero.webp` with your own Aari embroidery image
-2. Keep the filename the same so the existing composition still applies
-3. Use a legitimate, non-watermarked image (own photography or a licensed/properly attributed source)
-4. Keep the **4:3** ratio to match the hero slot, and update the `width`/`height`
-   attributes on the hero `<img>` in `index.html` if the pixel dimensions change
+1. Replace `assets/embroidery/aari-embroidery-design-15.webp` with your own Aari embroidery image
+2. Use a legitimate, non-watermarked image (own photography or a licensed/properly attributed source)
+3. The hero frame is **4:5 portrait** (`.hero-image-wrapper` in `styles.css`). A differently
+   shaped photo still works — `object-fit: cover` crops it to the slot — but a 4:5 source
+   shows uncropped
+4. Update the `width`/`height` attributes on the hero `<img>` in `index.html` to the new
+   file's real pixel dimensions so the layout reserves the right space before load
 
 The hero `<img>` is the **only** place the hero photo is referenced, and the surrounding
-comment in `index.html` marks the location for quick editing. `config.js`
-(`website.defaultImage`) also points at it.
+comment in `index.html` marks the location for quick editing. The now-unused legacy file
+`assets/aari-embroidery-hero.webp` can be deleted.
 
 ### Gallery and lightbox
 The gallery section (`#gallery`) shows **24 photos** in a masonry-style column layout.
@@ -254,7 +259,8 @@ https://wa.me/<number>?text=<pre-filled message>
 > *text* — there is no way for a static site to attach the actual image file. The photo is
 > therefore sent as a **link** inside the message. For the link to be useful (and for
 > WhatsApp to render a preview thumbnail) the site must be **deployed at its public domain**
-> — `website.url` in `config.js` must be the real domain, not `REPLACE_WITH_FINAL_DOMAIN`.
+> — `website.url` in `config.js` must be the real domain. It is set to
+> `https://dheera.digimaraa.in`.
 > A truly attached image would require the WhatsApp Business API and a backend, which this
 > static site does not have.
 
@@ -286,7 +292,8 @@ filenames) can be made specific.
 | --- | --- | --- |
 | `assets/embroidery/aari-embroidery-design-01..24.webp` | Gallery, full size | Loaded by the lightbox only |
 | `assets/embroidery/thumbs/*.webp` | Gallery grid previews | 640px wide, what the page actually loads |
-| `assets/aari-embroidery-hero.webp` | Hero image | 4:3 crop of a supplied photo |
+| `assets/embroidery/aari-embroidery-design-15.webp` | Hero image | 1080×1350, shown in a 4:5 frame |
+| `assets/aari-embroidery-hero.webp` | Unused legacy hero | 4:3 crop; kept for reference, no longer referenced |
 | `assets/aari-embroidery-about.webp` | "Crafted with Passion" image | 6:5 crop |
 | `assets/aari-embroidery-contact.webp` | Dheera Creatives contact card | 16:10 crop |
 | `assets/products/aari-embroidery-collection-1..6.webp` | Collection cards 1–6 | 4:3 crops |
@@ -346,39 +353,38 @@ form-handling service or backend endpoint and this README updated accordingly.
 - Content: edit copy directly in `index.html`
 
 ### SEO / Deployment Configuration
-The domain lives in **one place** — `config.js`:
+The domain is configured in **`config.js`**:
 
 ```js
 website: {
-  url: "https://your-domain.com",   // no trailing slash
+  url: "https://dheera.digimaraa.in",   // no trailing slash
   ...
 }
 ```
 
-`index.html` holds no domain of its own: its `canonical`, `og:*`, `twitter:*` and
-JSON-LD URLs contain the token `__SITE_URL__`, substituted at runtime by
-`applySiteUrl()` in `script.js`. Until `website.url` is set, the browser's own origin
-is used, so the site works correctly on any host automatically.
+Current production origin: **https://dheera.digimaraa.in**.
 
-Only two files still need a manual edit, because crawlers read them without running JS:
+**Config-driven (JSON-LD).** The two JSON-LD blocks in `index.html` contain the token
+`__SITE_URL__`, substituted at runtime by `applySiteUrl()` in `script.js`. Google executes
+JavaScript, so it sees the resolved values. If `website.url` is unset, the browser's own
+origin is used, so the site works correctly on any host automatically.
 
-| File | Where |
-| --- | --- |
-| `sitemap.xml` | the `<loc>` entry |
-| `robots.txt` | the `Sitemap:` line |
+**Hard-coded (everything a non-JS crawler needs).** Social crawlers do not execute
+JavaScript, so these must be literal absolute URLs in the served HTML:
 
-> ⚠️ **Social previews need a hard-coded URL.** Facebook, WhatsApp, X, LinkedIn and
-> Slack do not execute JavaScript, so they cannot see `__SITE_URL__` substituted. If you
-> want working link previews, put the real absolute URL directly in the `og:image`,
-> `og:url` and `twitter:image` tags in `index.html` rather than relying on the token.
+| File | Where | Current value |
+| --- | --- | --- |
+| `index.html` | `og:url` | `https://dheera.digimaraa.in/` |
+| `index.html` | `og:image`, `twitter:image` | `https://dheera.digimaraa.in/assets/logo/og-image.jpg` |
+| `sitemap.xml` | the `<loc>` entry | `https://dheera.digimaraa.in/` |
+| `robots.txt` | the `Sitemap:` line | `https://dheera.digimaraa.in/sitemap.xml` |
 
-```html
-<!-- option A: hard-code for crawler-safe previews (recommended for social) -->
-<meta property="og:image" content="https://your-domain.com/assets/logo/og-image.jpg">
+`canonical` is deliberately root-relative (`href="/"`) so it is correct on any host without
+needing a domain at all.
 
-<!-- option B: keep it dynamic (works for Google, not for social crawlers) -->
-<meta property="og:image" content="__SITE_URL__/assets/logo/og-image.jpg">
-```
+> ⚠️ **Changing the domain** means editing `config.js` **and** the four URLs in the table
+> above. A pure-static site cannot make the og/twitter tags dynamic — that would require a
+> build step or server-side templating.
 
 The Open Graph / Twitter image **must** be an absolute URL — crawlers do not resolve
 relative paths. `assets/logo/og-image.jpg` is already 1200×630, the exact ratio required.

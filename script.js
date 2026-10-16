@@ -38,14 +38,16 @@
   }
 
   /* ------------------------------------------------------------------
-     Absolute <head> URLs — canonical, Open Graph, Twitter, JSON-LD.
-     The domain is never hard-coded in index.html: those tags carry the
-     __SITE_URL__ token, which is swapped here for website.url from
-     config.js. While that value is still the REPLACE_WITH... placeholder,
-     the browser's own origin is used instead, so a deployed copy
+     Absolute JSON-LD URLs.
+     The domain is never hard-coded for structured data: the JSON-LD blocks
+     in index.html carry the __SITE_URL__ token, which is swapped here for
+     website.url from config.js. While that value is still the REPLACE_WITH...
+     placeholder, the browser's own origin is used instead, so a deployed copy
      self-corrects with no edits.
-     NOTE: social crawlers (Facebook, WhatsApp, X, LinkedIn, Slack) do not
-     run JavaScript, so they never see this substitution.
+     NOTE: this substitution covers JS-executing consumers only. Social
+     crawlers (Facebook, WhatsApp, X, LinkedIn, Slack) never run JavaScript,
+     which is why og:url, og:image and twitter:image are hard-coded as
+     absolute production URLs in index.html, and canonical is root-relative.
      ------------------------------------------------------------------ */
   var SITE_URL_TOKEN = '__SITE_URL__';
 
@@ -78,7 +80,7 @@
       return;
     }
 
-    // 1. Attribute values: canonical href, and og:* / twitter:* content.
+    // 1. Attribute values: JSON-LD url/@id and any remaining __SITE_URL__ token.
     //    The attribute list is copied first so mutating values mid-walk is safe.
     Array.prototype.forEach.call(head.querySelectorAll('*'), function (el) {
       Array.prototype.slice.call(el.attributes).forEach(function (attr) {

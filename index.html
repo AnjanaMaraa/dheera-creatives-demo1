@@ -11,26 +11,30 @@
     <meta name="author" content="Dheera Creatives">
     <meta name="theme-color" content="#01200f">
 
-    <!-- Absolute URLs in this <head> are built from config.js -> website.url
-         at runtime. Nothing here needs editing; the token __SITE_URL__ is
-         swapped for the configured origin by applySiteUrl() in script.js. -->
-    <link rel="canonical" href="__SITE_URL__/">
+    <!-- Absolute URLs are handled in two ways:
+         - canonical is root-relative "/" — it needs no domain and stays correct
+           on every host, including previews.
+         - og:url, og:image and twitter:image are hard-coded to the production
+           origin, because social crawlers (Facebook, WhatsApp, X, LinkedIn,
+           Slack) read raw HTML and never run JavaScript, so a runtime swap is
+           invisible to them. Update them by hand if the domain ever changes.
+         - the JSON-LD blocks below keep the __SITE_URL__ token, which
+           applySiteUrl() in script.js replaces with config.js -> website.url;
+           Google executes JavaScript, so it sees the resolved values. -->
+    <link rel="canonical" href="/">
 
     <!-- Open Graph Meta Tags -->
     <meta property="og:type" content="website">
     <meta property="og:title" content="Dheera Creatives | Aari Embroidery & Custom Stitching">
     <meta property="og:description" content="Discover handcrafted Aari embroidery and personalized stitching for your special moments.">
-    <!-- Social share image: 1200x630, the exact Open Graph ratio.
-         CAUTION: Facebook, WhatsApp, X, LinkedIn and Slack do NOT run JavaScript,
-         so they read the literal __SITE_URL__ token and will show no image.
-         Google does run JS, so search/JSON-LD is unaffected. If social previews
-         matter, hard-code the absolute https URL of og-image.jpg right here. -->
-    <meta property="og:image" content="__SITE_URL__/assets/logo/og-image.jpg">
+    <!-- Social share image: 1200x630, the exact Open Graph ratio. Absolute URL
+         on purpose — non-JS crawlers must be able to fetch it directly. -->
+    <meta property="og:image" content="https://dheera.digimaraa.in/assets/logo/og-image.jpg">
     <meta property="og:image:type" content="image/jpeg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="Dheera Creatives — handcrafted Aari embroidery and custom stitching">
-    <meta property="og:url" content="__SITE_URL__/">
+    <meta property="og:url" content="https://dheera.digimaraa.in/">
     <meta property="og:site_name" content="Dheera Creatives">
     <meta property="og:locale" content="en_IN">
 
@@ -38,7 +42,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Dheera Creatives | Aari Embroidery & Custom Stitching">
     <meta name="twitter:description" content="Handcrafted Aari embroidery and customized stitching for your perfect moments.">
-    <meta name="twitter:image" content="__SITE_URL__/assets/logo/og-image.jpg">
+    <meta name="twitter:image" content="https://dheera.digimaraa.in/assets/logo/og-image.jpg">
     <meta name="twitter:image:alt" content="Dheera Creatives — handcrafted Aari embroidery and custom stitching">
 
     <!-- Icons and Manifest -->

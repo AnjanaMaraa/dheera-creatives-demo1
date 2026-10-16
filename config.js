@@ -65,15 +65,20 @@ const siteConfig = {
     // blocks — is built from this at runtime by applySiteUrl() in script.js,
     // so index.html itself never has to contain a domain.
     //
-    // While this value still reads REPLACE_WITH..., the runtime falls back to
-    // the browser's own origin, so any deployed or previewed copy
-    // self-corrects without edits. Replace it once the domain is final.
-    url: "https://REPLACE_WITH_FINAL_DOMAIN",
+    // The live production origin is https://dheera.digimaraa.in. If this value
+    // is ever left as REPLACE_WITH..., the runtime falls back to the browser's
+    // own origin, so any deployed or previewed copy self-corrects without edits.
+    url: "https://dheera.digimaraa.in",
 
     title: "Dheera Creatives | Aari Embroidery & Custom Stitching",
     defaultDescription:
       "Discover handcrafted Aari embroidery, custom blouse designs and personalized stitching by Dheera Creatives. Explore bespoke creations for your special moments with shipping across Tamil Nadu.",
-    defaultImage: "assets/aari-embroidery-hero.webp"
+
+    // Default social-share image. NOTE: no code currently reads this value —
+    // og:image / twitter:image are hard-coded in index.html (see README, "Site
+    // domain") because social crawlers do not run JavaScript. Kept in sync as
+    // the intended single source if a build step is ever added.
+    defaultImage: "assets/logo/og-image.jpg"
   },
 
   // Settings for the on-page enquiry form.
